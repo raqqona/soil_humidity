@@ -27,10 +27,10 @@ void setup(){
 }
 
 void loop(){
+  int value = get_data();
   String now_time = create_time(); //get time
-  int value = analogRead(35); //get humidity
   SendPatchRequest( now_time, String( value ) ); //send the data
-  delay(280000);
+  delay(1680000);
 }
 
 //WiFiconnect function
@@ -45,6 +45,36 @@ void WiFi_conect(){
   Serial.println(WiFi.localIP()); //esp32's localIPaddress
 }
 
+int get_data(){
+  int i, cnt = 0, n = 10, data = 0;
+  int val[n], value[n];
+  double s = 0.0, sum = 0.0, ave = 0.0, var = 0.0;
+
+  for (i = 0; i < n; i++){
+    val[i] = analogRead(35);
+    sum += val[i] * val[i];
+    ave += val[i];
+  }
+  ave = ave / n;
+  sum = sum / n;
+
+  s = sum - ((ave * ave) / n);
+
+  for(i = 0; i < n; i++){
+    double hoge = val[i] * val[i];
+    double average = ave * ave;
+    if(average + s >= hoge && average - s <= hoge){
+      value[cnt] = val[i];
+      cnt++;
+    }
+  }
+
+  for(i = 0; i < n; i ++){
+      data += value[cnt];
+  }
+  return data / cnt;
+}
+
 //get time
 String create_time(){
   String now_time;
@@ -52,7 +82,7 @@ String create_time(){
 
   year = String(timeInfo.tm_year + 1900); //convert to A.D.
   mon = String(timeInfo.tm_mon + 1); //convert to real month
-  day = String(timeInfo.tm_mday);
+  day = String(timeInfo.tm_mday);vul
 
   if(int(timeInfo.tm_hour) / 10 == 0){ //add "0" when the sec is single digit
     String now_hour = "0" + String(timeInfo.tm_hour);
